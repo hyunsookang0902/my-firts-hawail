@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>여행 일정 관리</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ALOHA, Hyunsoo's family go to Hawaii</h1>
+        </header>
+        
+        <main>
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button id="prevMonth">&lt;</button>
+                    <h2 id="currentMonth">2024년 3월</h2>
+                    <button id="nextMonth">&gt;</button>
+                </div>
+                <div class="weekdays">
+                    <div>일</div>
+                    <div>월</div>
+                    <div>화</div>
+                    <div>수</div>
+                    <div>목</div>
+                    <div>금</div>
+                    <div>토</div>
+                </div>
+                <div id="calendar" class="calendar-grid"></div>
+            </div>
+
+            <div class="schedule-container">
+                <div class="schedule-list">
+                    <h3>일정 목록</h3>
+                    <div class="schedule-date">
+                        <span id="selectedDateDisplay">선택된 날짜</span>
+                    </div>
+                    <div id="scheduleList" class="schedule-items">
+                        <div class="schedule-timeline"></div>
+                    </div>
+                </div>
+
+                <div class="schedule-form">
+                    <h3 id="formTitle">새 일정 추가</h3>
+                    <form id="addScheduleForm">
+                        <input type="hidden" id="scheduleId">
+                        <div class="form-row">
+                            <div class="form-group half">
+                                <label for="scheduleDate">날짜</label>
+                                <input type="date" id="scheduleDate" required>
+                            </div>
+                            <div class="form-group half">
+                                <label for="scheduleTimeDisplay">시간</label>
+                                <div class="time-picker">
+                                    <div class="time-display" id="scheduleTimeDisplay">
+                                        <span id="selectedTime">시간 선택</span>
+                                        <input type="hidden" id="scheduleTime" required>
+                                    </div>
+                                    <div class="time-selector" id="timeSelector">
+                                        <div class="time-column">
+                                            <div class="time-scroll" id="hourScroll">
+                                                <div class="time-options" id="hourOptions"></div>
+                                            </div>
+                                        </div>
+                                        <div class="time-divider">:</div>
+                                        <div class="time-column">
+                                            <div class="time-scroll" id="minuteScroll">
+                                                <div class="time-options" id="minuteOptions"></div>
+                                            </div>
+                                        </div>
+                                        <div class="time-column period">
+                                            <div class="time-scroll" id="periodScroll">
+                                                <div class="time-options" id="periodOptions">
+                                                    <div class="time-option" data-value="AM">오전</div>
+                                                    <div class="time-option" data-value="PM">오후</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleTitle">일정 제목</label>
+                            <div class="title-container">
+                                <input type="text" id="scheduleTitle" placeholder="일정 제목을 입력하세요" required>
+                                <div class="travel-type">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="isDeparture" name="travelType">
+                                        <span>출발일</span>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="isArrival" name="travelType">
+                                        <span>도착일</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleUrl">관련 링크 (선택사항)</label>
+                            <input type="url" id="scheduleUrl" placeholder="https://" class="url-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleMapUrl">지도 링크 (선택사항)</label>
+                            <div class="map-input-container">
+                                <input type="url" id="scheduleMapUrl" placeholder="지도 URL을 입력하세요" class="url-input">
+                                <button type="button" id="searchMapBtn" class="map-search-btn" aria-label="지도 검색"></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleDetails">상세 내용</label>
+                            <textarea id="scheduleDetails" placeholder="상세 내용을 입력하세요"></textarea>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" id="submitBtn">일정 추가</button>
+                            <button type="button" id="cancelBtn" class="cancel-btn" style="display: none;">취소</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
