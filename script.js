@@ -1,8 +1,17 @@
+// 전역 변수로 이동
+let events = {};
+let selectedDate = null;
+let updateCalendar;
+let updateScheduleList;
+
 document.addEventListener('DOMContentLoaded', function() {
     let currentDate = new Date();
-    let events = JSON.parse(localStorage.getItem('events')) || {};
-    let selectedDate = null;
+    events = JSON.parse(localStorage.getItem('events')) || {};
     let editingEventId = null;
+
+    // 내보내기/가져오기 버튼 이벤트 리스너 추가
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+    document.getElementById('importInput').addEventListener('change', handleFileSelect);
 
     const calendar = document.getElementById('calendar');
     const currentMonthElement = document.getElementById('currentMonth');
@@ -152,7 +161,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setTime(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
     }
 
-    function updateCalendar() {
+    // updateCalendar 함수를 전역 변수에 할당
+    updateCalendar = function() {
         const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
         
@@ -243,7 +253,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return date.toLocaleDateString('ko-KR', options);
     }
 
-    function updateScheduleList(dateString) {
+    // updateScheduleList 함수를 전역 변수에 할당
+    updateScheduleList = function(dateString) {
         scheduleList.innerHTML = '<div class="schedule-timeline"></div>';
         const selectedDateDisplay = document.getElementById('selectedDateDisplay');
         selectedDateDisplay.textContent = formatDateForDisplay(dateString);
@@ -470,6 +481,62 @@ document.addEventListener('DOMContentLoaded', function() {
         const searchQuery = encodeURIComponent(address || '');
         window.open(`https://www.google.com/maps/search/?api=1&query=${searchQuery}`, '_blank');
     });
+
+    // 데이터 내보내기 기능
+    function exportData() {
+        const data = {
+            events: events,
+            exportDate: new Date().toISOString()
+        };
+        const dataStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `travel_schedule_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // 데이터 가져오기 기능
+    function importData(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data && data.events) {
+                    if (confirm('기존 일정을 새로운 일정으로 대체하시겠습니까?')) {
+                        events = data.events;
+                        localStorage.setItem('events', JSON.stringify(events));
+                        updateCalendar();
+                        if (selectedDate) {
+                            updateScheduleList(selectedDate);
+                        }
+                        alert('일정을 성공적으로 가져왔습니다.');
+                    }
+                } else {
+                    alert('올바른 형식의 파일이 아닙니다.');
+                }
+            } catch (error) {
+                alert('파일을 읽는 중 오류가 발생했습니다.');
+                console.error('Import error:', error);
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    // 파일 입력 변경 이벤트 핸들러
+    function handleFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            importData(file);
+        }
+        // 같은 파일을 다시 선택할 수 있도록 value 초기화
+        event.target.value = '';
+    }
 
     // 초기화
     initializeTimePicker();

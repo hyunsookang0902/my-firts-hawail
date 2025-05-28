@@ -894,4 +894,56 @@ button[type="submit"]:hover {
     .travel-type {
         justify-content: flex-end;
     }
+}
+
+/* 데이터 동기화 컨트롤 스타일 */
+.data-sync-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.sync-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    background: #3498db;
+    color: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sync-btn:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
+.export-btn::before {
+    content: '📤';
+    margin-right: 5px;
+}
+
+.import-btn::before {
+    content: '📥';
+    margin-right: 5px;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 768px) {
+    .data-sync-controls {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0 20px;
+    }
+
+    .sync-btn {
+        width: 100%;
+        padding: 12px;
+    }
 } 
