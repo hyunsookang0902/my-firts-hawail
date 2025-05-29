@@ -4,6 +4,16 @@ let selectedDate = null;
 let updateCalendar;
 let updateScheduleList;
 
+// 폼 관련 전역 변수
+const scheduleFormContainer = document.getElementById('scheduleFormContainer');
+const addNewScheduleBtn = document.getElementById('addNewScheduleBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+
+// 전역 변수로 이동
+let selectedHourValue = null;
+let selectedMinuteValue = null;
+let selectedPeriodValue = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     let currentDate = new Date();
     events = JSON.parse(localStorage.getItem('events')) || {};
@@ -21,7 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const scheduleList = document.getElementById('scheduleList');
     const formTitle = document.getElementById('formTitle');
     const submitBtn = document.getElementById('submitBtn');
-    const cancelBtn = document.getElementById('cancelBtn');
 
     // 시간 선택기 요소
     const timeDisplay = document.getElementById('scheduleTimeDisplay');
@@ -56,67 +65,38 @@ document.addEventListener('DOMContentLoaded', function() {
         '2024-12-25': '크리스마스'
     };
 
-    // 시간 선택기 초기화
-    function initializeTimePicker() {
-        // 시간 옵션 생성
-        for (let i = 1; i <= 12; i++) {
-            const option = document.createElement('div');
-            option.className = 'time-option';
-            option.textContent = i.toString().padStart(2, '0');
-            option.dataset.value = i;
-            hourOptions.appendChild(option);
-        }
-
-        // 분 옵션 생성
-        for (let i = 0; i < 60; i += 5) {
-            const option = document.createElement('div');
-            option.className = 'time-option';
-            option.textContent = i.toString().padStart(2, '0');
-            option.dataset.value = i;
-            minuteOptions.appendChild(option);
-        }
-
-        // 시간 선택기 토글
-        timeDisplay.addEventListener('click', function(e) {
-            e.stopPropagation();
-            timeSelector.classList.toggle('active');
-        });
-
-        // 시간 옵션 선택 이벤트
-        document.querySelectorAll('.time-option').forEach(option => {
-            option.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const parent = this.parentElement;
-                parent.querySelector('.selected')?.classList.remove('selected');
-                this.classList.add('selected');
-                updateSelectedTime();
-            });
-        });
-
-        // 문서 클릭시 시간 선택기 닫기
-        document.addEventListener('click', function(e) {
-            if (!timeSelector.contains(e.target) && !timeDisplay.contains(e.target)) {
-                timeSelector.classList.remove('active');
-            }
-        });
+    // 선택 완료 여부 확인
+    function isTimeSelectionComplete() {
+        return selectedHourValue && selectedMinuteValue && selectedPeriodValue;
     }
 
-    // 선택된 시간 업데이트
+    // 선택된 시간 업데이트 - 전역 함수로 이동
     function updateSelectedTime() {
-        const selectedHour = hourOptions.querySelector('.selected')?.dataset.value || '12';
-        const selectedMinute = minuteOptions.querySelector('.selected')?.dataset.value || '00';
-        const selectedPeriod = periodOptions.querySelector('.selected')?.dataset.value || 'AM';
+        const hour = selectedHourValue || hourOptions.querySelector('.selected')?.dataset.value || '12';
+        const minute = selectedMinuteValue || minuteOptions.querySelector('.selected')?.dataset.value || '00';
+        const period = selectedPeriodValue || periodOptions.querySelector('.selected')?.dataset.value || 'AM';
 
-        const hour24 = selectedPeriod === 'PM' && selectedHour !== '12' 
-            ? parseInt(selectedHour) + 12 
-            : (selectedPeriod === 'AM' && selectedHour === '12' ? 0 : selectedHour);
+        const hour24 = period === 'PM' && hour !== '12' 
+            ? parseInt(hour) + 12 
+            : (period === 'AM' && hour === '12' ? 0 : hour);
 
-        const timeString = `${hour24.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`;
+        const timeString = `${hour24.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
         scheduleTimeInput.value = timeString;
-        selectedTimeSpan.textContent = `${selectedHour}:${selectedMinute.toString().padStart(2, '0')} ${selectedPeriod === 'AM' ? '오전' : '오후'}`;
+        selectedTimeSpan.textContent = `${hour}:${minute.toString().padStart(2, '0')} ${period === 'AM' ? '오전' : '오후'}`;
+
+        // 모든 값이 선택되었을 때만 선택기 닫기
+        if (isTimeSelectionComplete()) {
+            closeTimeSelector();
+        }
     }
 
-    // 시간 설정
+    // 시간 선택기 닫기 함수 - 전역으로 이동
+    function closeTimeSelector() {
+        timeSelector.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // 시간 설정 함수 수정
     function setTime(timeString) {
         if (!timeString) return;
 
@@ -125,6 +105,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const minute = parseInt(minutes);
         const period = hour >= 12 ? 'PM' : 'AM';
         const hour12 = hour % 12 || 12;
+
+        selectedHourValue = hour12.toString();
+        selectedMinuteValue = minutes;
+        selectedPeriodValue = period;
 
         // 옵션 선택
         hourOptions.querySelectorAll('.time-option').forEach(option => {
@@ -154,11 +138,97 @@ document.addEventListener('DOMContentLoaded', function() {
         updateSelectedTime();
     }
 
+    // 기본 시간 설정 함수 추가
     function setDefaultTime() {
         const now = new Date();
         const hours = now.getHours();
         const minutes = Math.floor(now.getMinutes() / 5) * 5;
         setTime(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`);
+    }
+
+    // 시간 선택기 초기화
+    function initializeTimePicker() {
+        // 시간 옵션 생성
+        for (let i = 1; i <= 12; i++) {
+            const option = document.createElement('div');
+            option.className = 'time-option';
+            option.textContent = i.toString().padStart(2, '0');
+            option.dataset.value = i;
+            hourOptions.appendChild(option);
+        }
+
+        // 분 옵션 생성
+        for (let i = 0; i < 60; i += 5) {
+            const option = document.createElement('div');
+            option.className = 'time-option';
+            option.textContent = i.toString().padStart(2, '0');
+            option.dataset.value = i;
+            minuteOptions.appendChild(option);
+        }
+
+        // 시간 선택기 토글
+        timeDisplay.addEventListener('click', function(e) {
+            e.stopPropagation();
+            timeSelector.classList.toggle('active');
+            
+            if (timeSelector.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+
+        // 시간 옵션 선택 이벤트
+        hourOptions.querySelectorAll('.time-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+                hourOptions.querySelector('.selected')?.classList.remove('selected');
+                this.classList.add('selected');
+                selectedHourValue = this.dataset.value;
+                updateSelectedTime();
+            });
+        });
+
+        // 분 옵션 선택 이벤트
+        minuteOptions.querySelectorAll('.time-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+                minuteOptions.querySelector('.selected')?.classList.remove('selected');
+                this.classList.add('selected');
+                selectedMinuteValue = this.dataset.value;
+                updateSelectedTime();
+            });
+        });
+
+        // 오전/오후 선택 이벤트
+        periodOptions.querySelectorAll('.time-option').forEach(option => {
+            option.addEventListener('click', function(e) {
+                e.stopPropagation();
+                periodOptions.querySelector('.selected')?.classList.remove('selected');
+                this.classList.add('selected');
+                selectedPeriodValue = this.dataset.value;
+                updateSelectedTime();
+            });
+        });
+
+        // 시간 선택기 영역 클릭 시 이벤트 전파 중단
+        timeSelector.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+
+        // 문서 클릭시 시간 선택기 닫기
+        document.addEventListener('click', function(e) {
+            if (!timeSelector.contains(e.target) && !timeDisplay.contains(e.target)) {
+                closeTimeSelector();
+            }
+        });
+
+        // 모바일에서 터치 이벤트 처리
+        document.addEventListener('touchstart', function(e) {
+            if (!timeSelector.contains(e.target) && !timeDisplay.contains(e.target)) {
+                closeTimeSelector();
+            }
+        });
     }
 
     // updateCalendar 함수를 전역 변수에 할당
@@ -371,9 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('isDeparture').checked = event.isDeparture || false;
         document.getElementById('isArrival').checked = event.isArrival || false;
         
-        formTitle.textContent = '일정 수정';
-        submitBtn.textContent = '수정하기';
-        cancelBtn.style.display = 'block';
+        showScheduleForm('edit');
     }
 
     function deleteEvent(eventId) {
@@ -390,7 +458,6 @@ document.addEventListener('DOMContentLoaded', function() {
         addScheduleForm.reset();
         formTitle.textContent = '새 일정 추가';
         submitBtn.textContent = '일정 추가';
-        cancelBtn.style.display = 'none';
         
         if (selectedDate) {
             document.getElementById('scheduleDate').value = selectedDate;
@@ -546,4 +613,43 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('scheduleDate').value = todayString;
     setDefaultTime();
     updateScheduleList(todayString);
+
+    // 새 일정 추가 버튼 클릭 이벤트
+    addNewScheduleBtn.addEventListener('click', () => {
+        showScheduleForm('add');
+    });
+
+    // 취소 버튼 클릭 이벤트
+    cancelBtn.addEventListener('click', () => {
+        hideScheduleForm();
+    });
+
+    // 폼 표시 함수
+    function showScheduleForm(mode) {
+        scheduleFormContainer.style.display = 'block';
+        formTitle.textContent = mode === 'add' ? '새 일정 추가' : '일정 수정';
+        submitBtn.textContent = mode === 'add' ? '일정 추가' : '일정 수정';
+        cancelBtn.style.display = 'block';
+        
+        // 폼이 보이도록 스크롤
+        scheduleFormContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 폼 숨김 함수
+    function hideScheduleForm() {
+        scheduleFormContainer.style.display = 'none';
+        resetForm();
+    }
+
+    // 기존 수정 버튼 클릭 이벤트 수정
+    function handleEditClick(schedule) {
+        showScheduleForm('edit');
+        // ... 기존 수정 로직 ...
+    }
+
+    // 페이지 로드시 폼 숨기기
+    document.addEventListener('DOMContentLoaded', () => {
+        hideScheduleForm();
+        // ... 기존 초기화 로직 ...
+    });
 }); 
